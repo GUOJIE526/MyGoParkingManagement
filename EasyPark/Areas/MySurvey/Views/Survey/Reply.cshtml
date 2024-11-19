@@ -1,0 +1,16 @@
+﻿@model EasyPark.Models.Survey
+
+<h2>@Model.User.Username 的問題</h2>
+
+<div>
+    <p>@Model.Question</p>
+</div>
+
+<form asp-action="Reply" method="post">
+    <div class="form-group">
+        <label for="replyContent">回覆訊息</label>
+        <textarea id="replyContent" name="replyContent" class="form-control" required></textarea>
+    </div>
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-primary">回覆訊息</button>
+</form>

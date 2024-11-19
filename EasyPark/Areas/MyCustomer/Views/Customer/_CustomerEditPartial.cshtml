@@ -1,0 +1,54 @@
+﻿@model EasyPark.Models.Customer
+
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Edit" asp-controller="Customer" asp-route-id="@Model.UserId" id="customerEditForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="form-group">
+                <label asp-for="Username" class="control-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Phone" class="control-label"></label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BlackCount" class="control-label"></label>
+                <input asp-for="BlackCount" class="form-control" value="@Model.BlackCount" />
+                <span asp-validation-for="BlackCount" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="IsBlack" class="control-label"></label>
+                <br />
+                <label class="switch">
+                    <input type="checkbox" asp-for="IsBlack" />
+                    <span class="slider round"></span>
+                </label>
+                <span asp-validation-for="IsBlack" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" value="Save" class="btn btn-primary">儲存修改</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

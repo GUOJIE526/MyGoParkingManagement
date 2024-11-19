@@ -1,0 +1,120 @@
+﻿@model IEnumerable<EasyPark.Models.ParkingLots>
+
+@{
+    ViewData["Title"] = "停車場管理";
+}
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.material.css" rel="stylesheet" />
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- Button trigger modal -->
+<button type="button" class="CreateBtn btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#CreateModal">
+    <i class="fa-solid fa-folder-plus fa-beat-fade"></i> 新增
+</button>
+
+<table id="ParkLotTable" class="mdl-data-table table-hover text-center" tyle="width:100%">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.District)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LotName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MonRentalSpace)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SmallCarSpace)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EtcSpace)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MotherSpace)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RateRules)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WeekdayRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HolidayRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ResDeposit)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MonRentalRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OpendoorTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tel)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Latitude)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Longitude)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ValidSpace)
+            </th>
+            <th>修改</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<!-- Create Modal -->
+<div class="modal fade" id="CreateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body CreateParking">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">編輯</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body EditParking">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.material.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/js/parkinglots.js"></script>
+}

@@ -1,0 +1,181 @@
+﻿@model IEnumerable<EasyPark.Models.Survey>
+
+@{
+    ViewData["Title"] = "Survey List";
+}
+
+<h1>客戶問題</h1>
+
+<!-- 搜索功能 -->
+<form asp-action="Index" method="get" id="searchForm">
+    <p>
+        從信箱收尋: <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" id="searchString" />
+    </p>
+</form>
+
+<!-- Checkbox 過濾功能 -->
+<div>
+    <form method="get" asp-action="Index" id="filterForm">
+        <input type="hidden" name="searchString" value="@ViewData["CurrentFilter"]" />
+        <label><input type="radio" name="filterStatus" value="" checked> 顯示全部</label>
+        <label><input type="radio" name="filterStatus" value="已回覆"> 顯示已回覆</label>
+        <label><input type="radio" name="filterStatus" value="未回覆"> 顯示未回覆</label>
+    </form>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>信箱</th>
+            <th>發問時間</th>
+            <th>回覆狀態</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.User.Email)</td>
+                <td>@Html.DisplayFor(modelItem => item.SubmittedAt)</td>
+                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">查看回覆內容</a>
+                    <button class="btn btn-primary btn-reply" data-id="@item.Id" data-email="@item.User.Email" data-question="@item.Question">回覆</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">回覆訊息</h5>
+                <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="replyForm">
+                    <div class="form-group">
+                        <label for="email" class="col-form-label">使用者信箱:</label>
+                        <input type="text" class="form-control" id="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="question" class="col-form-label">使用者問題:</label>
+                        <textarea class="form-control" id="question" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="replyMessage" class="col-form-label">回覆內容:</label>
+                        <textarea class="form-control" id="replyMessage"></textarea>
+                    </div>
+                    <input type="hidden" id="surveyId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">取消</button>
+
+                <button type="button" class="btn btn-primary" id="sendReply">回覆</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function bindReplyButtons() {
+                // 當點擊Reply按鈕時，打開Modal並填充相關信息
+                $('.btn-reply').on('click', function () {
+                    var id = $(this).data('id');
+                    var email = $(this).data('email');
+                    var question = $(this).data('question');
+
+                    $('#surveyId').val(id);
+                    $('#email').val(email);
+                    $('#question').val(question);
+
+                    $('#replyModal').modal('show');
+                });
+            }
+
+            // 首次綁定Reply按鈕事件
+            bindReplyButtons();
+
+            // 當點擊Send Reply按鈕時，發送AJAX請求
+            $('#sendReply').on('click', function () {
+                var surveyId = $('#surveyId').val();
+                var replyMessage = $('#replyMessage').val();
+
+                $.ajax({
+                    url: '@Url.Action("Reply", "Survey")', // 控制器中的Reply動作
+                    method: 'POST',
+                    data: {
+                        id: surveyId,
+                        replyMessage: replyMessage
+                    },
+                    success: function (response) {
+                        $('#replyModal').modal('hide');
+                        location.reload(); // 刷新頁面
+                    },
+                    error: function () {
+                        alert('請輸入回覆的內容');
+                    }
+                });
+            });
+
+            // 搜索框輸入時自動發送AJAX請求
+            var typingTimer;                // 計時器，用來延遲請求
+            var doneTypingInterval = 300;   // 等待300毫秒後發送請求
+
+            $('#searchString').on('input', function () {
+                clearTimeout(typingTimer);  // 清除上次輸入的計時器
+                typingTimer = setTimeout(doneTyping, doneTypingInterval); // 開始新的計時器
+            });
+
+            function doneTyping() {
+                var searchString = $('#searchString').val();
+                var filterStatus = $('input[name="filterStatus"]:checked').val(); // 獲取當前選中的狀態
+
+                $.ajax({
+                    url: '@Url.Action("Index", "Survey")',
+                    method: 'GET',
+                    data: {
+                        searchString: searchString,
+                        filterStatus: filterStatus
+                    },
+                    success: function (response) {
+                        $('table tbody').html($(response).find('table tbody').html());
+                        bindReplyButtons(); // 重新綁定Reply按鈕事件
+                    },
+                    error: function () {
+                        alert('There was an error while searching.');
+                    }
+                });
+            }
+
+            // 當用戶選擇新的 radio 時自動發送AJAX請求來過濾數據
+            $('input[name="filterStatus"]').on('change', function () {
+                var filterStatus = $('input[name="filterStatus"]:checked').val();
+                var searchString = $('#searchString').val();
+
+                $.ajax({
+                    url: '@Url.Action("Index", "Survey")',
+                    method: 'GET',
+                    data: {
+                        filterStatus: filterStatus,
+                        searchString: searchString
+                    },
+                    success: function (response) {
+                        $('table tbody').html($(response).find('table tbody').html());
+                        bindReplyButtons(); // 重新綁定Reply按鈕事件
+                    },
+                    error: function () {
+                        alert('There was an error while filtering the data.');
+                    }
+                });
+            });
+        });
+    </script>
+}

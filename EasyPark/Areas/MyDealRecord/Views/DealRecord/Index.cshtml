@@ -1,0 +1,78 @@
+﻿@model IEnumerable<EasyPark.Models.DealRecord>
+
+@{
+    ViewData["Title"] = "交易紀錄";
+}
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.material.css" rel="stylesheet" />
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- Button trigger modal -->
+<button type="button" class="CreateBtn btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#CreateModal">
+    <i class="fa-solid fa-folder-plus fa-beat-fade"></i> 新增
+</button>
+
+<table id="DealRecordTable" class="mdl-data-table table-hover text-center" tyle="width:100%">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Amount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PaymentTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ParkType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Car)
+            </th>
+            <th><i class="fa-solid fa-gear"></i></th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<!-- Create Modal -->
+<div class="modal fade" id="CreateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body CreateRecord">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">編輯</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body EditRecord">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.material.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/js/dealrecord.js"></script>
+}

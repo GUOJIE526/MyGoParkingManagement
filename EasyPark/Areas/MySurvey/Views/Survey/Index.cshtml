@@ -1,0 +1,526 @@
+﻿@* @model IEnumerable<EasyPark.Models.Survey>
+
+@{
+    ViewData["Title"] = "意見回覆";
+}
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.material.css" rel="stylesheet" />
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- 搜索功能 -->
+<form asp-action="Index" method="get" id="searchForm">
+    <p>
+        從信箱收尋: <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" id="searchString" />
+    </p>
+</form>
+
+<!-- Checkbox 過濾功能 -->
+<div>
+    <form method="get" asp-action="Index" id="filterForm">
+        <input type="hidden" name="searchString" value="@ViewData["CurrentFilter"]" />
+        <label><input type="radio" name="filterStatus" value="" checked> 顯示全部</label>
+        <label><input type="radio" name="filterStatus" value="已回覆"> 顯示已回覆</label>
+        <label><input type="radio" name="filterStatus" value="未回覆"> 顯示未回覆</label>
+    </form>
+</div>
+
+<table id="SurveyTable" class="mdl-data-table table-hover" style="width:100%">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().User.Email)</th> <!-- 顯示信箱的標題 -->
+            <th>@Html.DisplayNameFor(model => model.First().SubmittedAt)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Status)</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- 回覆 Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">回覆訊息</h5>
+                <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="replyForm">
+                    <div class="form-group">
+                        <label for="email" class="col-form-label">使用者信箱:</label>
+                        <input type="text" class="form-control" id="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="question" class="col-form-label">使用者問題:</label>
+                        <textarea class="form-control" id="question" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="replyMessage" class="col-form-label">回覆內容:</label>
+                        <textarea class="form-control" id="replyMessage"></textarea>
+                    </div>
+                    <input type="hidden" id="surveyId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">取消</button>
+                <button type="button" class="btn btn-primary" id="sendReply">回覆</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 查看回覆 Modal -->
+<div class="modal fade" id="viewReplyModal" tabindex="-1" role="dialog" aria-labelledby="viewReplyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewReplyModalLabel">查看回覆訊息</h5>
+                <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewReplyForm">
+                    <div class="form-group">
+                        <label for="viewReplyEmail" class="col-form-label">使用者信箱:</label>
+                        <input type="text" class="form-control" id="viewReplyEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewReplyQuestion" class="col-form-label">使用者問題:</label>
+                        <textarea class="form-control" id="viewReplyQuestion" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewReplyMessage" class="col-form-label">回覆內容:</label>
+                        <textarea class="form-control" id="viewReplyMessage" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.material.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            function bindReplyButtons() {
+                $('.btn-reply').on('click', function () {
+                    var id = $(this).data('id');
+                    var email = $(this).data('email');
+                    var question = $(this).data('question');
+
+                    $('#surveyId').val(id);
+                    $('#email').val(email);
+                    $('#question').val(question);
+
+                    $('#replyModal').modal('show');
+                });
+            }
+
+            function bindViewReplyButtons() {
+                $('.btn-view-reply').on('click', function () {
+                    var id = $(this).data('id');
+
+                    $.ajax({
+                        url: '@Url.Action("GetReplyMessage", "Survey")',
+                        method: 'GET',
+                        data: { id: id },
+                        success: function (response) {
+                            if (response.success) {
+                                // 明確設置每個欄位的值
+                                $('#viewReplyEmail').val(response.email || "無信箱資訊");
+                                $('#viewReplyQuestion').val(response.question || "無問題資訊");
+                                $('#viewReplyMessage').val(response.replyMessage || "尚未回覆");
+
+                                // 顯示模態框
+                                $('#viewReplyModal').modal('show');
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('無法取得回覆訊息');
+                        }
+                    });
+                });
+            }
+
+
+            $('#sendReply').on('click', function () {
+                var surveyId = $('#surveyId').val();
+                var replyMessage = $('#replyMessage').val().trim(); // 移除空白字元，防止只有空白的情況
+
+                if (!replyMessage) {
+                    // 使用 SweetAlert 顯示錯誤訊息，提示回覆內容不可為空
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '回覆內容不可為空！',
+                        icon: 'error',
+                        confirmButtonText: '確定'
+                    });
+                    return; // 停止執行，避免發送空白回覆
+                }
+
+                $.ajax({
+                    url: '@Url.Action("Reply", "Survey")',
+                    method: 'POST',
+                    data: { id: surveyId, replyMessage: replyMessage },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#replyModal').modal('hide');
+                            $('#SurveyTable').DataTable().ajax.reload();
+
+                            // 使用 SweetAlert 顯示成功訊息
+                            Swal.fire({
+                                title: '回覆成功！',
+                                text: '您的回覆已成功送出。',
+                                icon: 'success',
+                                confirmButtonText: '確定'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '回覆失敗',
+                                text: response.message,
+                                icon: 'error',
+                                confirmButtonText: '確定'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '發生未知錯誤，請稍後再試',
+                            icon: 'error',
+                            confirmButtonText: '確定'
+                        });
+                    }
+                });
+            });
+
+
+            $('#searchString').on('input', function () {
+                $('#SurveyTable').DataTable().ajax.reload();
+            });
+
+            $('input[name="filterStatus"]').on('change', function () {
+                $('#SurveyTable').DataTable().ajax.reload();
+            });
+
+            $('#SurveyTable').DataTable({
+                ajax: {
+                    url: '@Url.Action("GetSurveyData", "Survey")',
+                    type: 'GET',
+                    data: function (d) {
+                        d.filterStatus = $('input[name="filterStatus"]:checked').val();
+                        d.searchString = $('#searchString').val();
+                    },
+                    dataSrc: ''
+                },
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/2.1.6/i18n/zh-HANT.json',
+                },
+                columns: [
+                    { data: 'email' },
+                    { data: 'submittedAt' },
+                    { data: 'status' },
+                    {
+                        data: 'surveyId',
+                        render: function (data, type, row) {
+                            if (row.status === "已回覆") {
+                                return `<button class="btn btn-info btn-view-reply" data-id="${data}">查看</button>`;
+                            } else {
+                                return `<button class="btn btn-warning btn-reply" data-id="${data}" data-email="${row.email}" data-question="${row.question}">回覆</button>`;
+                            }
+                        }
+                    }
+                ],
+                drawCallback: function () {
+                    bindReplyButtons();
+                    bindViewReplyButtons();
+                }
+            });
+        });
+    </script>
+
+
+
+}
+ *@
+ @model IEnumerable<EasyPark.Models.Survey>
+
+@{
+    ViewData["Title"] = "意見回覆";
+}
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.material.css" rel="stylesheet" />
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- 搜索功能 -->
+<form asp-action="Index" method="get" id="searchForm">
+    <p>
+        從信箱收尋: <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" id="searchString" />
+    </p>
+</form>
+
+<!-- Checkbox 過濾功能 -->
+<div>
+    <form method="get" asp-action="Index" id="filterForm">
+        <input type="hidden" name="searchString" value="@ViewData["CurrentFilter"]" />
+        <label><input type="radio" name="filterStatus" value="" checked> 顯示全部</label>
+        <label><input type="radio" name="filterStatus" value="已回覆"> 顯示已回覆</label>
+        <label><input type="radio" name="filterStatus" value="未回覆"> 顯示未回覆</label>
+    </form>
+</div>
+
+<table id="SurveyTable" class="mdl-data-table table-hover" style="width:100%">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().User.Email)</th> <!-- 顯示信箱的標題 -->
+            <th>@Html.DisplayNameFor(model => model.First().SubmittedAt)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Status)</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- 回覆 Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">回覆訊息</h5>
+                <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="replyForm">
+                    <div class="form-group">
+                        <label for="email" class="col-form-label">使用者信箱:</label>
+                        <input type="text" class="form-control" id="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="question" class="col-form-label">使用者問題:</label>
+                        <textarea class="form-control" id="question" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="replyMessage" class="col-form-label">回覆內容:</label>
+                        <textarea class="form-control" id="replyMessage"></textarea>
+                    </div>
+                    <input type="hidden" id="surveyId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">取消</button>
+                <button type="button" class="btn btn-primary" id="sendReply">回覆</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 查看回覆 Modal -->
+<div class="modal fade" id="viewReplyModal" tabindex="-1" role="dialog" aria-labelledby="viewReplyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewReplyModalLabel">查看回覆訊息</h5>
+                <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewReplyForm">
+                    <div class="form-group">
+                        <label for="viewReplyEmail" class="col-form-label">使用者信箱:</label>
+                        <input type="text" class="form-control" id="viewReplyEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewReplyQuestion" class="col-form-label">使用者問題:</label>
+                        <textarea class="form-control" id="viewReplyQuestion" readonly></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewReplyMessage" class="col-form-label">回覆內容:</label>
+                        <textarea class="form-control" id="viewReplyMessage" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.material.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            function bindReplyButtons() {
+                $('.btn-reply').on('click', function () {
+                    $('#surveyId').val('');
+                    $('#email').val('');
+                    $('#question').val('');
+                    $('#replyMessage').val('');
+
+                    var id = $(this).data('id');
+                    var email = $(this).data('email');
+                    var question = $(this).data('question');
+
+                    $('#surveyId').val(id);
+                    $('#email').val(email);
+                    $('#question').val(question);
+
+                    $('#replyModal').modal('show');
+                });
+            }
+
+            function bindViewReplyButtons() {
+                $('.btn-view-reply').on('click', function () {
+                    var id = $(this).data('id');
+
+                    $.ajax({
+                        url: '@Url.Action("GetReplyMessage", "Survey")',
+                        method: 'GET',
+                        data: { id: id },
+                        success: function (response) {
+                            if (response.success) {
+                                $('#viewReplyEmail').val(response.email || "無信箱資訊");
+                                $('#viewReplyQuestion').val(response.question || "無問題資訊");
+                                $('#viewReplyMessage').val(response.replyMessage || "尚未回覆");
+
+                                $('#viewReplyModal').modal('show');
+                            } else {
+                                Swal.fire({
+                                    title: '錯誤',
+                                    text: response.message,
+                                    icon: 'error',
+                                    confirmButtonText: '確定'
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '無法取得回覆訊息',
+                                icon: 'error',
+                                confirmButtonText: '確定'
+                            });
+                        }
+                    });
+                });
+            }
+
+            $('#sendReply').on('click', function () {
+                var surveyId = $('#surveyId').val();
+                var replyMessage = $('#replyMessage').val().trim();
+
+                if (!replyMessage) {
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '回覆內容不可為空！',
+                        icon: 'error',
+                        confirmButtonText: '確定'
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("Reply", "Survey")',
+                    method: 'POST',
+                    data: { id: surveyId, replyMessage: replyMessage },
+                    success: function (response) {
+                        $('#replyModal').modal('hide'); // 先隱藏模態框
+
+                        if (response.success) {
+                            // 立即顯示 SweetAlert 成功訊息
+                            Swal.fire({
+                                title: '回覆成功！',
+                                text: '您的回覆已成功送出。',
+                                icon: 'success',
+                                confirmButtonText: '確定'
+                            }).then(() => {
+                                // 成功訊息顯示後再刷新 DataTable
+                                $('#SurveyTable').DataTable().ajax.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '回覆失敗',
+                                text: response.message,
+                                icon: 'error',
+                                confirmButtonText: '確定'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '發生未知錯誤，請稍後再試',
+                            icon: 'error',
+                            confirmButtonText: '確定'
+                        });
+                    }
+                });
+            });
+
+            $('#searchString').on('input', function () {
+                $('#SurveyTable').DataTable().ajax.reload();
+            });
+
+            $('input[name="filterStatus"]').on('change', function () {
+                $('#SurveyTable').DataTable().ajax.reload();
+            });
+
+            $('#SurveyTable').DataTable({
+                ajax: {
+                    url: '@Url.Action("GetSurveyData", "Survey")',
+                    type: 'GET',
+                    data: function (d) {
+                        d.filterStatus = $('input[name="filterStatus"]:checked').val();
+                        d.searchString = $('#searchString').val();
+                    },
+                    dataSrc: ''
+                },
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/2.1.6/i18n/zh-HANT.json',
+                },
+                columns: [
+                    { data: 'email' },
+                    { data: 'submittedAt' },
+                    { data: 'status' },
+                    {
+                        data: 'surveyId',
+                        render: function (data, type, row) {
+                            if (row.status === "已回覆") {
+                                return `<button class="btn btn-info btn-view-reply" data-id="${data}">查看</button>`;
+                            } else {
+                                return `<button class="btn btn-warning btn-reply" data-id="${data}" data-email="${row.email}" data-question="${row.question}">回覆</button>`;
+                            }
+                        }
+                    }
+                ],
+                drawCallback: function () {
+                    bindReplyButtons();
+                    bindViewReplyButtons();
+                }
+            });
+        });
+    </script>
+
+
+
+}

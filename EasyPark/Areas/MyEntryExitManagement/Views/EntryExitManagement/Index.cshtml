@@ -1,0 +1,478 @@
+﻿@model IEnumerable<EasyPark.Models.EntryExitManagement>
+@* @model IEnumerable<MyGoParking.Areas.MyEntryExitManagement.ViewModel.EntryExitManagementViewModel>*@
+ 
+@section Styles
+{
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.material.css" rel="stylesheet" />
+    <style>
+        .container{
+            margin:0px auto;
+            overflow:auto;
+            min-width:100%;
+        }
+        th{
+            white-space: nowrap;
+        }
+
+        .dataTables_wrapper {
+            width: 100%; /* 使容器寬度適應其父容器 */
+            overflow-x: auto; /* 添加水平滾動條以處理超出內容 */
+            margin: 0 auto; /* 將容器置中 */
+        }
+        
+    </style>
+}
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+
+<div class="row mb-3">
+    <div class="col-12 col-lg-3 mb-3 mb-lg-0">
+        <h1>出入管理</h1>
+        @Html.DropDownList("LotId", (SelectList)ViewBag.ParkingLots, new { @class = "form-control" })
+    </div>
+    <div class="col-12 col-lg-3 mb-3 mb-lg-0">
+        <div class="card bg-mygo4 shadow h-100">
+            <div class="card-body p-2">
+                <div class="col-12 p-0 mx-1">
+                    <i class="fa-brands fa-think-peaks"></i><span class="px-2 text-sm font-weight-bold text-midi text-uppercase mb-1">尖峰停車時段</span>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="svg-container d-flex align-text-top justify-content-evenly mt-1">
+                                <div id="GetPeakHours" class="text-sm font-weight-bold text-midi text-uppercase mb-1">
+                                    <!--尖峰停車時段-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-3 mb-3 mb-lg-0">
+        <div class="card bg-mygo4 shadow h-100">
+            <div class="card-body p-2">
+                <div class="col-12 p-0 mx-1">
+                    <i class="fa-regular fa-clock"></i><span class="px-2 text-sm font-weight-bold text-midi text-uppercase mb-1">平均停車時間</span>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="svg-container d-flex align-text-top justify-content-evenly mt-1">
+                                <div id="GetAverageParkingTime" class="fs-1 text-sm font-weight-bold text-midi text-uppercase mb-1">
+                                    <!--平均停車時間-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-3 mb-3 mb-lg-0">
+        <div class="card bg-mygo4 shadow h-100 py-2">
+            <div class="card-body">
+                <div class="col-auto">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="svg-container d-flex align-content-center justify-content-evenly">
+                                <!--車車圖案-->
+                                <div>
+                                    <svg id="mySvg" width="70px" height="70px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.072">
+                                        <defs>
+                                            <clipPath id="clip">
+                                                <rect id="clipRect" x="0" y="0" width="24" height="24" />
+                                            </clipPath>
+                                            <mask id="mask">
+                                                <rect id="maskRect" x="0" y="0" width="24" height="24" fill="white" />
+                                            </mask>
+                                        </defs>
+                                        <g id="SVGRepo_bgCarrier" stroke-width="0" />
+                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
+                                        <g id="SVGRepo_iconCarrier">
+                                            <path id="myPath" fill-rule="evenodd" clip-rule="evenodd" d="M2 14.803v6.447c0 .414.336.75.75.75h1.614a.75.75 0 0 0 .74-.627L5.5 19h13l.395 2.373a.75.75 0 0 0 .74.627h1.615a.75.75 0 0 0 .75-.75v-6.447a5.954 5.954 0 0 0-1-3.303l-.78-1.17a1.994 1.994 0 0 1-.178-.33h.994a.75.75 0 0 0 .671-.415l.25-.5A.75.75 0 0 0 21.287 8H19.6l-.31-1.546a2.5 2.5 0 0 0-1.885-1.944C15.943 4.17 14.141 4 12 4c-2.142 0-3.943.17-5.405.51a2.5 2.5 0 0 0-1.886 1.944L4.399 8H2.714a.75.75 0 0 0-.67 1.085l.25.5a.75.75 0 0 0 .67.415h.995a1.999 1.999 0 0 1-.178.33L3 11.5c-.652.978-1 2.127-1 3.303zm15.961-4.799a4 4 0 0 0 .34.997H5.699c.157-.315.271-.65.34-.997l.632-3.157a.5.5 0 0 1 .377-.39C8.346 6.157 10 6 12 6c2 0 3.654.156 4.952.458a.5.5 0 0 1 .378.389l.631 3.157zM5.5 16a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM20 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" fill="yellow" clip-path="url(#clip)" />
+                                            <path id="myPathOverlay" fill-rule="evenodd" clip-rule="evenodd" d="M2 14.803v6.447c0 .414.336.75.75.75h1.614a.75.75 0 0 0 .74-.627L5.5 19h13l.395 2.373a.75.75 0 0 0 .74.627h1.615a.75.75 0 0 0 .75-.75v-6.447a5.954 5.954 0 0 0-1-3.303l-.78-1.17a1.994 1.994 0 0 1-.178-.33h.994a.75.75 0 0 0 .671-.415l.25-.5A.75.75 0 0 0 21.287 8H19.6l-.31-1.546a2.5 2.5 0 0 0-1.885-1.944C15.943 4.17 14.141 4 12 4c-2.142 0-3.943.17-5.405.51a2.5 2.5 0 0 0-1.886 1.944L4.399 8H2.714a.75.75 0 0 0-.67 1.085l.25.5a.75.75 0 0 0 .67.415h.995a1.999 1.999 0 0 1-.178.33L3 11.5c-.652.978-1 2.127-1 3.303zm15.961-4.799a4 4 0 0 0 .34.997H5.699c.157-.315.271-.65.34-.997l.632-3.157a.5.5 0 0 1 .377-.39C8.346 6.157 10 6 12 6c2 0 3.654.156 4.952.458a.5.5 0 0 1 .378.389l.631 3.157zM5.5 16a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM20 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" fill="green" clip-path="url(#clip)" mask="url(#mask)" />
+                                        </g>
+                                    </svg>
+                                </div>
+                                <!--剩餘車位-->
+                                <div id="counts" class="align-content-center text-sm font-weight-bold text-midi text-uppercase mb-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p>
+    <button class="btn btn-success preview" data-bs-toggle="modal" data-bs-target="#mymodal" data-id="" data-action="CreatePartial" data-title="新增資料">新增</button>
+</p>
+<!-- Modal 用Bootstrap的互動視窗展示圖片-->
+<div class="modal fade" id="mymodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" id="modalid">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<table id="myDataTableId" class="mdl-data-table table-hover text-center" style="width:100%">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Parktype)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LicensePlatePhoto)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CarId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EntryTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LicensePlateKeyinTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Amount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExitTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PaymentStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PaymentTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ValidTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LotId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsFinish)
+            </th>
+            <th>
+                修改
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data will be loaded here via AJAX -->
+    </tbody>
+</table>
+
+
+
+@section Scripts
+{
+@*     @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    } *@
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.material.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/js/picture.js" asp-append-version="true"></script>
+    
+    <script>
+        
+        /*
+        $(document).ready(function () {
+            $(document).on("change", "#Picture", function () {
+                previewImage(this);
+            });
+        })
+        */
+        
+        // $(document).ready(function () {
+            
+
+        //     $('#mymodal').on('show.bs.modal', function (event) {
+        //         //console.log("我有被按到");                
+        //         var button = $(event.relatedTarget); // 觸發modal的按鈕
+        //         var id = button.data('id'); // 從按鈕中獲取資料ID
+        //         var action = button.data('action'); // 從按鈕中獲取動作 (details/edit/create等)
+        //         var title = button.data('title')
+
+        //         // 清空 modal 的內容
+        //         var modal = $(this);
+        //         modal.find('.modal-body').empty(); // 清除現有內容
+
+        //         if (action == "ShowPicturePartial") {
+        //             $('#modalid').attr('class', 'modal-dialog modal-lg');
+        //         }
+        //         else {
+        //             $('#modalid').attr('class', 'modal-dialog modal-xl');// 改為大尺寸
+        //         }
+        //         $('#exampleModalLabel').text(title)
+        //         var modal = $(this);
+        //         // 根據不同的動作，載入對應的 Partial View
+        //         var url = 'EntryExitManagement/' + action + '/' + id;
+        //         modal.find('.modal-body').load(url); // 動態加載Partial View
+        //     });
+
+
+        //     $(document).on("change", "#Picture", function () {
+        //         previewImage(this);
+        //     });
+
+
+        //     $(document).ready(function () {
+        //         $('#myDataTableId').DataTable({
+        //             ajax: {
+        //                 url: 'EntryExitManagement/GetData',
+        //                 type: 'GET',
+        //                 dataSrc: '',
+        //                 datatype: 'json',                        
+        //             },
+        //             language: {
+        //                 url: '//cdn.datatables.net/plug-ins/2.1.6/i18n/zh-HANT.json',
+        //             },
+        //             columns: [
+        //                 { data: 'parktype' },
+        //                 {
+        //                     data: 'licensePlatePhoto',
+        //                     render: function (data, type, row) {
+        //                         return '<div class="text-center">' +
+        //                             '<button class="btn btn-success preview" data-bs-toggle="modal" data-bs-target="#mymodal" data-id="' + row.entryexitId + '" data-action="ShowPicturePartial" data-title="預覽圖片">預覽</button>' +
+        //                             '</div>';
+        //                     }
+        //                 },
+        //                 {
+        //                     data: null, // 因為我們將要自定義內容，所以設為 null
+        //                     render: function (data, type, row) {
+        //                         return row.carId + '<br>車主: ' + row.userName; // 同時顯示 carId 和 userName
+        //                     }
+        //                 },
+        //                 { data: 'entryTime' },
+        //                 { data: 'licensePlateKeyinTime' },
+        //                 { data: 'amount' },
+        //                 { data: 'exitTime' },
+        //                 { data: 'paymentStatus' },
+        //                 { data: 'paymentTime' },
+        //                 { data: 'validTime' },
+        //                 { data: 'lotName' }, // 修改 LotId 為 lotName
+        //                 { data: 'isFinish' },
+        //                 {
+        //                     data: 'entryexitId',
+        //                     render: function (data) {
+        //                         return '<button class="btn btn-warning preview" data-bs-toggle="modal" data-bs-target="#mymodal" data-id="' + data + '" data-action="EditPartial" data-title="編輯資料">編輯</button>';
+        //                     }
+        //                 },
+        //                 {
+        //                     data: 'entryexitId',
+        //                     render: function (data) {
+        //                         return '<button class="btn btn-danger preview" data-bs-toggle="modal" data-bs-target="#mymodal" data-id="' + data + '" data-action="DeletePartial" data-title="刪除資料">刪除</button>';
+        //                     }
+        //                 }
+        //             ]
+        //         });
+        //     });
+
+
+        //     $(document).on('submit', '#editForm', function (event) {
+        //         event.preventDefault(); // 防止表單的默認提交
+
+        //         var form = $(this);
+        //         var actionUrl = form.attr('action'); // 獲取表單的提交 URL
+        //         var formElement = form[0];
+        //         var formData = new FormData(formElement);
+
+        //         /*
+        //         $.ajax({
+        //             url: actionUrl,
+        //             type: 'POST',
+        //             data: formData,
+        //             success: function (response) {
+        //                 // 假設伺服器返回一個狀態代碼來表示成功
+        //                 if (response.success) {
+        //                     Swal.fire({
+        //                         title: '成功!',
+        //                         text: '資料已成功更新!',
+        //                         icon: 'success',
+        //                         confirmButtonText: 'OK'
+        //                     });
+
+        //                     // 關閉 Modal 並且刷新 DataTable 或某個部分
+        //                     $('#editModal').modal('hide');
+        //                     $('#myDataTableId').DataTable().ajax.reload();
+        //                 } else {
+        //                     Swal.fire({
+        //                         title: '失敗!',
+        //                         text: '更新失敗，請稍後再試!',
+        //                         icon: 'error',
+        //                         confirmButtonText: 'OK'
+        //                     });
+        //                 }
+        //             },
+        //             error: function () {
+        //                 // 伺服器端錯誤處理
+        //                 Swal.fire({
+        //                     title: '錯誤!',
+        //                     text: '伺服器錯誤，請稍後再試!',
+        //                     icon: 'error',
+        //                     confirmButtonText: 'OK'
+        //                 });
+        //             }
+        //         });
+        //         */
+
+        //         $.ajax({
+        //             url: form.attr('action'), // 取得表單 action 的 URL
+        //             type: 'POST',
+        //             data: formData,
+        //             datatype:'Json',
+        //             processData: false, // 不序列化數據
+        //             contentType: false, // 設定為 false 來讓 jQuery 設定 content-type
+        //             success: function (response) {
+        //                 // 假設伺服器返回一個狀態代碼來表示成功
+        //                 if (response.success) {
+        //                     Swal.fire({
+        //                         title: '成功!',
+        //                         text: '資料已成功更新!',
+        //                         icon: 'success',
+        //                         confirmButtonText: 'OK'
+        //                     });
+
+        //                     // 關閉 Modal 並且刷新 DataTable 或某個部分
+        //                     $('#mymodal').modal('hide');
+        //                     $('#myDataTableId').DataTable().ajax.reload();
+        //                 } else {
+        //                     Swal.fire({
+        //                         title: '失敗!',
+        //                         text: response.message,
+        //                         icon: 'error',
+        //                         confirmButtonText: 'OK'
+        //                     });
+        //                 }
+        //             },
+        //             error: function (xhr, status, error) {
+        //                 console.error(xhr.responseText); // 輸出錯誤信息
+        //                 // 錯誤提示
+        //                 Swal.fire('失敗', '資料更新失敗', 'error');
+        //             }
+        //         });
+        //     });
+
+        //     $(document).on('submit', '#createForm', function (event) {
+        //         event.preventDefault(); // 防止表單的默認提交
+
+        //         var form = $(this);
+        //         var actionUrl = form.attr('action'); // 獲取表單的提交 URL
+        //         var formElement = form[0];
+        //         var formData = new FormData(formElement);
+
+        //         $.ajax({
+        //             url: form.attr('action'), // 取得表單 action 的 URL
+        //             type: 'POST',
+        //             data: formData,
+        //             datatype: 'Json',
+        //             processData: false, // 不序列化數據
+        //             contentType: false, // 設定為 false 來讓 jQuery 設定 content-type
+        //             success: function (response) {
+        //                 // 假設伺服器返回一個狀態代碼來表示成功
+        //                 if (response.success) {
+        //                     Swal.fire({
+        //                         title: '成功!',
+        //                         text: '資料已成功更新!',
+        //                         icon: 'success',
+        //                         confirmButtonText: 'OK'
+        //                     });
+
+        //                     // 關閉 Modal 並且刷新 DataTable 或某個部分
+        //                     $('#mymodal').modal('hide');
+        //                     $('#myDataTableId').DataTable().ajax.reload();
+        //                 } else {
+        //                     Swal.fire({
+        //                         title: '失敗!',
+        //                         text: response.message,
+        //                         icon: 'error',
+        //                         confirmButtonText: 'OK'
+        //                     });
+        //                 }
+        //             },
+        //             error: function (xhr, status, error) {
+        //                 console.error(xhr.responseText); // 輸出錯誤信息
+        //                 // 錯誤提示
+        //                 Swal.fire('失敗', '資料更新失敗', 'error');
+        //             }
+        //         });
+        //     });
+            
+        //     $(document).on('submit', '#deleteForm', function (event) {
+        //         event.preventDefault(); // 防止表單的默認提交
+
+        //         var form = $(this);
+        //         var actionUrl = form.attr('action'); // 獲取表單的提交 URL
+
+        //         Swal.fire({
+        //             title: '確認刪除',
+        //             text: "您確定要刪除這條記錄嗎？",
+        //             icon: 'warning',
+        //             showCancelButton: true,
+        //             confirmButtonText: '刪除',
+        //             cancelButtonText: '取消'
+        //         }).then((result) => {
+        //             if (result.isConfirmed) {
+        //                 var formElement = form[0];
+        //                 var formData = new FormData(formElement);
+
+        //                 $.ajax({
+        //                     url: actionUrl, // 取得表單 action 的 URL
+        //                     type: 'POST',
+        //                     data: formData,
+        //                     datatype: 'Json',
+        //                     processData: false, // 不序列化數據
+        //                     contentType: false, // 設定為 false 來讓 jQuery 設定 content-type
+        //                     success: function (response) {
+        //                         // 假設伺服器返回一個狀態代碼來表示成功
+        //                         if (response.success) {
+        //                             Swal.fire({
+        //                                 title: '成功!',
+        //                                 text: '資料已成功刪除!',
+        //                                 icon: 'success',
+        //                                 confirmButtonText: 'OK'
+        //                             });
+
+        //                             // 關閉 Modal 並且刷新 DataTable
+        //                             $('#mymodal').modal('hide');
+        //                             $('#myDataTableId').DataTable().ajax.reload();
+        //                         } else {
+        //                             Swal.fire({
+        //                                 title: '失敗!',
+        //                                 text: response.message,
+        //                                 icon: 'error',
+        //                                 confirmButtonText: 'OK'
+        //                             });
+        //                         }
+        //                     },
+        //                     error: function (xhr, status, error) {
+        //                         console.error(xhr.responseText); // 輸出錯誤信息
+        //                         // 錯誤提示
+        //                         Swal.fire('失敗', '資料更新失敗', 'error');
+        //                     }
+        //                 });
+        //             }
+        //         });
+        //     });
+        // });
+        
+    </script>
+    <script src="~/js/entryexit.js" asp-append-version="true"></script>
+}

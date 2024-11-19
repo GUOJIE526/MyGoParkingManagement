@@ -1,0 +1,15 @@
+﻿@model IEnumerable<EasyPark.Models.Survey>
+
+<tbody>
+    @foreach (var survey in Model)
+    {
+        <tr>
+            <td>@survey.User.Email</td>
+            <td>@survey.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+            <td>@survey.IsReplied ? "已回覆" : "未回覆"</td>
+            <td>
+                <button class="btn-reply" data-id="@survey.Id" data-email="@survey.User.Email" data-question="@survey.Question">回覆</button>
+            </td>
+        </tr>
+    }
+</tbody>

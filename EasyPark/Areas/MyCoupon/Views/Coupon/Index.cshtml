@@ -1,0 +1,68 @@
+﻿@model IEnumerable<EasyPark.Models.Coupon>
+
+@{
+    ViewData["Title"] = "Index";
+}
+@section Styles{
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/2.1.8/css/dataTables.material.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/fontawesome.min.css" rel="stylesheet" />
+}
+<h1>優惠券管理</h1>
+<p>
+    <button class="btn btn-success preview" data-bs-toggle="modal" data-bs-target="#mymodal" data-id="" data-action="CreatePartial" data-title="新增資料">新增</button>
+</p>
+<table id="myDataTableId" class="mdl-data-table text-center" style="width:100%">
+    <thead>
+        <tr>
+            <th>
+                使用者ID
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.User)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CouponCode)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DiscountAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ValidFrom)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ValidUntil)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsUsed)
+            </th>
+            <th>
+                修改
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<!-- Modal -->
+<div class="modal fade" id="mymodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" id="modalid">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/14.0.0/material-components-web.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.material.js"></script>
+    <script src="~/lib/font-awesome/js/fontawesome.min.js"></script>
+    <script src="~/js/coupon.js"></script>
+}

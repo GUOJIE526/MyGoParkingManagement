@@ -1,0 +1,48 @@
+﻿@model EasyPark.Models.Survey
+
+@{
+    ViewData["Title"] = "回覆內容";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            使用者信箱
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.User.Email)
+        </dd>
+        <dt class="col-sm-2">
+            發問日期
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SubmittedAt)
+        </dd>
+        <dt class="col-sm-2">
+            使用者問題
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Question)
+        </dd>
+        <dt class="col-sm-2">
+            回覆內容
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ReplyMessage)
+        </dd>
+
+        <dt class="col-sm-2">
+            回覆時間
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RepliedAt)
+        </dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Index">返回</a>
+</div>

@@ -1,0 +1,67 @@
+﻿@model Reservation
+
+<form asp-action="Create" id="CreateForm" class="col-md-12">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="CarId" class="control-label"></label>
+        <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="LotId" class="control-label"></label>
+        <select asp-for="LotId" class="form-control" asp-items="ViewBag.LotId"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="ResTime" class="control-label"></label>
+        <input asp-for="ResTime" class="form-control" />
+        <span asp-validation-for="ResTime" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="ValidUntil" class="control-label"></label>
+        <input asp-for="ValidUntil" class="form-control" />
+        <span asp-validation-for="ValidUntil" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="StartTime" class="control-label"></label>
+        <input asp-for="StartTime" class="form-control" />
+        <span asp-validation-for="StartTime" class="text-danger"></span>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="PaymentStatus" /> @Html.DisplayNameFor(model => model.PaymentStatus)
+        </label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="IsCanceled" /> @Html.DisplayNameFor(model => model.IsCanceled)
+        </label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="IsOverdue" /> @Html.DisplayNameFor(model => model.IsOverdue)
+        </label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="IsRefoundDeposit" /> @Html.DisplayNameFor(model => model.IsRefoundDeposit)
+        </label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="NotificationStatus" /> @Html.DisplayNameFor(model => model.NotificationStatus)
+        </label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="IsFinish" /> @Html.DisplayNameFor(model => model.IsFinish)
+        </label>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Create" class="btn btn-primary" />
+    </div>
+</form>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
